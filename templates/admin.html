@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="card">
+    <h2>Admin control</h2>
+    <p class="meta">Publish new posts and manage the queue.</p>
+    <form method="post">
+      <label>
+        Title
+        <input name="title" placeholder="Post title" required />
+      </label>
+      <label>
+        Content
+        <textarea name="content" placeholder="Write the post content" required></textarea>
+      </label>
+      <button class="button primary" type="submit">Publish</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h3>Existing posts</h3>
+    {% if posts %}
+      <ul>
+        {% for post in posts %}
+          <li>
+            <strong>{{ post['title'] }}</strong>
+            <span class="meta">{{ post['created_at'] }}</span>
+            <form method="post" action="{{ url_for('delete_post', post_id=post['id']) }}" style="display:inline;">
+              <button class="button" type="submit">Delete</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="meta">No posts yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}
