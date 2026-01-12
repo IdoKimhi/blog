@@ -6,8 +6,15 @@ app = Flask(__name__)
 DATABASE = os.getenv("DATABASE_URL", "blog.db")
 
 
+def ensure_database_path():
+    directory = os.path.dirname(DATABASE)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+
 def get_db():
     if "db" not in g:
+        ensure_database_path()
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
     return g.db
