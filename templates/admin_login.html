@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="admin-login">
+    <div>
+      <p class="eyebrow">ADMIN ACCESS</p>
+      <h1>Enter your token</h1>
+      <p class="meta">
+        Set <code>ADMIN_TOKEN</code> in your <code>.env</code> to unlock admin access.
+      </p>
+      {% if not token_set %}
+        <p class="error">No admin token configured yet.</p>
+      {% endif %}
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
+      <form method="post">
+        <label>
+          Admin token
+          <input name="token" type="password" placeholder="Enter admin token" required />
+        </label>
+        <button class="button primary" type="submit">Sign in</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}
