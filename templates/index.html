@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="card">
+    <h2>Latest posts</h2>
+    <p class="meta">Simple, clean, and easy to read.</p>
+  </section>
+  {% if posts %}
+    {% for post in posts %}
+      <article class="card">
+        <h3><a href="{{ url_for('post_detail', post_id=post['id']) }}">{{ post['title'] }}</a></h3>
+        <p class="meta">{{ post['created_at'] }}</p>
+        <p>{{ post['content'][:180] }}{% if post['content']|length > 180 %}...{% endif %}</p>
+      </article>
+    {% endfor %}
+  {% else %}
+    <div class="card empty-state">
+      <h3>No posts yet</h3>
+      <p>Create your first post from the admin panel.</p>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    ports:
+      - "1000:1000"
+    environment:
+      - PORT=1000
+      - DATABASE_URL=/app/data/blog.db
+    volumes:
+      - blog_data:/app/data
+
+volumes:
+  blog_data:
