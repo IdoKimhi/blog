@@ -3,22 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ title or "Studio Blog" }}</title>
+    <title>{{ title or "kimchi" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body>
     <header>
       <nav>
-        <a class="brand" href="{{ url_for('feed') }}">Studio Blog</a>
+        <a class="brand" href="{{ url_for('feed') }}">kimchi</a>
         <div class="nav-links">
           <a href="{{ url_for('feed') }}">Feed</a>
-          <a href="{{ url_for('admin') }}">Admin</a>
         </div>
       </nav>
     </header>
     <main>
       {% block content %}{% endblock %}
     </main>
-    <footer>Minimal, focused writing space.</footer>
+    <footer></footer>
   </body>
 </html>

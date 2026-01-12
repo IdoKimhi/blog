@@ -14,7 +14,11 @@
     <section class="post-grid">
       {% for post in posts %}
         <article class="post-card">
-          <div class="post-image"></div>
+          {% if post['image_url'] %}
+            <img class="post-image" src="{{ post['image_url'] }}" alt="{{ post['title'] }}" />
+          {% else %}
+            <div class="post-image placeholder"></div>
+          {% endif %}
           <div class="post-body">
             <h2><a href="{{ url_for('post_detail', post_id=post['id']) }}">{{ post['title'] }}</a></h2>
             <p class="meta">{{ post['created_at'] }}</p>

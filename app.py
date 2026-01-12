@@ -33,6 +33,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
+            image_url TEXT,
             content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -47,6 +48,9 @@ def init_db():
         """
     )
     db.execute("INSERT OR IGNORE INTO visits (id, count) VALUES (1, 0)")
+    columns = [row["name"] for row in db.execute("PRAGMA table_info(posts)").fetchall()]
+    if "image_url" not in columns:
+        db.execute("ALTER TABLE posts ADD COLUMN image_url TEXT")
     db.commit()
 
 
@@ -80,7 +84,7 @@ def feed():
     db = get_db()
     visit_count = increment_visit_count()
     posts = db.execute(
-        "SELECT id, title, content, created_at FROM posts ORDER BY created_at DESC"
+        "SELECT id, title, image_url, content, created_at FROM posts ORDER BY created_at DESC"
     ).fetchall()
     return render_template("index.html", posts=posts, visit_count=visit_count)
 
@@ -89,7 +93,7 @@ def feed():
 def post_detail(post_id):
     db = get_db()
     post = db.execute(
-        "SELECT id, title, content, created_at FROM posts WHERE id = ?",
+        "SELECT id, title, image_url, content, created_at FROM posts WHERE id = ?",
         (post_id,),
     ).fetchone()
     if post is None:
@@ -104,11 +108,12 @@ def admin():
     db = get_db()
     if request.method == "POST":
         title = request.form.get("title", "").strip()
+        image_url = request.form.get("image_url", "").strip() or None
         content = request.form.get("content", "").strip()
         if title and content:
             db.execute(
-                "INSERT INTO posts (title, content) VALUES (?, ?)",
-                (title, content),
+                "INSERT INTO posts (title, image_url, content) VALUES (?, ?, ?)",
+                (title, image_url, content),
             )
             db.commit()
         return redirect(url_for("admin"))
