@@ -1,13 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
   <section class="hero">
-    <div class="hero-meta">
-      <span>NEW POST</span>
-      <span class="issue">#001</span>
-      <span class="issue">VISITS {{ visit_count }}</span>
+    <div>
+      <div class="hero-meta">
+        <span>Editorial</span>
+        <span class="issue">Edition #001</span>
+        <span class="issue">Visits {{ visit_count }}</span>
+      </div>
+      <h1>Design notes for modern teams</h1>
+      <p class="hero-subtitle">Playful, thoughtful writing for creative teams building bold ideas.</p>
     </div>
-    <h1>On the Blog</h1>
-    <p class="hero-subtitle">Thoughtful notes, creative work, and studio updates.</p>
+    <div class="hero-illustration">
+      <span>kimchi studio</span>
+    </div>
   </section>
 
   {% if posts %}

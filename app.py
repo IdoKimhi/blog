@@ -119,9 +119,34 @@ def admin():
         return redirect(url_for("admin"))
 
     posts = db.execute(
-        "SELECT id, title, created_at FROM posts ORDER BY created_at DESC"
+        "SELECT id, title, image_url, created_at FROM posts ORDER BY created_at DESC"
     ).fetchall()
     return render_template("admin.html", posts=posts)
+
+
+@app.route("/admin/edit/<int:post_id>", methods=["GET", "POST"])
+def edit_post(post_id):
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+    db = get_db()
+    post = db.execute(
+        "SELECT id, title, image_url, content FROM posts WHERE id = ?",
+        (post_id,),
+    ).fetchone()
+    if post is None:
+        return redirect(url_for("admin"))
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        image_url = request.form.get("image_url", "").strip() or None
+        content = request.form.get("content", "").strip()
+        if title and content:
+            db.execute(
+                "UPDATE posts SET title = ?, image_url = ?, content = ? WHERE id = ?",
+                (title, image_url, content, post_id),
+            )
+            db.commit()
+        return redirect(url_for("admin"))
+    return render_template("admin_edit.html", post=post)
 
 
 @app.route("/admin/delete/<int:post_id>", methods=["POST"])
