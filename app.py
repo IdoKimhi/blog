@@ -6,6 +6,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 DATABASE = os.getenv("DATABASE_URL", "blog.db")
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
 
 
 def ensure_database_path():
@@ -24,6 +25,11 @@ def get_db():
 
 def is_admin():
     return session.get("is_admin", False)
+
+
+@app.context_processor
+def inject_base_url():
+    return {"base_url": BASE_URL}
 
 
 def init_db():

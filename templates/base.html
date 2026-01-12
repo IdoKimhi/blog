@@ -9,12 +9,14 @@
   <body>
     <header>
       <nav>
-        <a class="brand" href="{{ url_for('feed') }}">
+        <a class="brand" href="{{ base_url }}{{ url_for('feed') }}">
           <span class="brand-mark">K</span>
           kimchi
         </a>
         <div class="nav-links">
-          <a href="{{ url_for('feed') }}">Feed</a>
+          <a href="{{ base_url }}/recipes">Recipes</a>
+          <a href="{{ base_url }}/blog-entries">Blog Entries</a>
+          <a href="{{ base_url }}/home-server">Home Server</a>
         </div>
       </nav>
     </header>
