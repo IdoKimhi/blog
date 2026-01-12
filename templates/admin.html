@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="admin-header">
+    <div>
+      <p class="eyebrow">ADMIN CONTROL</p>
+      <h1>Publish and manage</h1>
+      <p class="meta">Use the studio form to add new stories to the feed.</p>
+    </div>
+    <form method="post" action="{{ url_for('admin_logout') }}">
+      <button class="button ghost" type="submit">Log out</button>
+    </form>
+  </section>
+
+  <section class="admin-grid">
+    <div class="admin-card">
+      <h2>New post</h2>
+      <form method="post">
+        <label>
+          Title
+          <input name="title" placeholder="Post title" required />
+        </label>
+        <label>
+          Content
+          <textarea name="content" placeholder="Write the post content" required></textarea>
+        </label>
+        <button class="button primary" type="submit">Publish</button>
+      </form>
+    </div>
+
+    <div class="admin-card">
+      <h2>Existing posts</h2>
+      {% if posts %}
+        <ul class="admin-list">
+          {% for post in posts %}
+            <li>
+              <div>
+                <strong>{{ post['title'] }}</strong>
+                <span class="meta">{{ post['created_at'] }}</span>
+              </div>
+              <form method="post" action="{{ url_for('delete_post', post_id=post['id']) }}">
+                <button class="button ghost" type="submit">Delete</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="meta">No posts yet.</p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}
