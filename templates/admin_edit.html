@@ -6,13 +6,13 @@
       <h1>Update entry</h1>
       <p class="meta">Refine the post details and save your updates.</p>
     </div>
-    <a class="button ghost" href="{{ url_for('admin') }}">Back</a>
+    <a class="button ghost" href="{{ base_url }}{{ url_for('admin') }}">Back</a>
   </section>
 
   <section class="admin-grid single">
     <div class="admin-card">
       <h2>Post details</h2>
-      <form method="post">
+      <form method="post" action="{{ base_url }}{{ url_for('edit_post', post_id=post['id']) }}">
         <label>
           Title
           <input name="title" value="{{ post['title'] }}" required />

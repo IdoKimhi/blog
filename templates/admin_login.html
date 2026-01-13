@@ -13,7 +13,7 @@
       {% if error %}
         <p class="error">{{ error }}</p>
       {% endif %}
-      <form method="post">
+      <form method="post" action="{{ base_url }}{{ url_for('admin_login') }}">
         <label>
           Admin token
           <input name="token" type="password" placeholder="Enter admin token" required />
