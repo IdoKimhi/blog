@@ -1,9 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
-  <article class="card">
-    <h2>{{ post['title'] }}</h2>
-    <p class="meta">{{ post['created_at'] }}</p>
-    <p>{{ post['content'] }}</p>
-    <a class="button" href="{{ url_for('index') }}">Back to posts</a>
+  <article class="post-detail">
+    <div class="post-detail-header">
+      <p class="meta">{{ post['created_at'] }}</p>
+      <h1>{{ post['title'] }}</h1>
+    </div>
+    <div class="post-detail-body">
+      {% if post['image_url'] %}
+        <img class="post-detail-image" src="{{ post['image_url'] }}" alt="{{ post['title'] }}" />
+      {% endif %}
+      <p>{{ post['content'] }}</p>
+    </div>
+    <a class="text-link" href="{{ base_url }}{{ url_for('feed') }}">Back to feed</a>
   </article>
 {% endblock %}

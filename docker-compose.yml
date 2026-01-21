@@ -5,9 +5,8 @@ services:
     build: .
     ports:
       - "1000:1000"
-    environment:
-      - PORT=1000
-      - DATABASE_URL=/app/data/blog.db
+    env_file:
+      - .env
     volumes:
       - blog_data:/app/data
 

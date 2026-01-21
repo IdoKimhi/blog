@@ -1,37 +1,161 @@
 {% extends 'base.html' %}
 {% block content %}
-  <section class="card">
-    <h2>Admin control</h2>
-    <p class="meta">Publish new posts and manage the queue.</p>
-    <form method="post">
-      <label>
-        Title
-        <input name="title" placeholder="Post title" required />
-      </label>
-      <label>
-        Content
-        <textarea name="content" placeholder="Write the post content" required></textarea>
-      </label>
-      <button class="button primary" type="submit">Publish</button>
+  <section class="admin-header">
+    <div>
+      <p class="eyebrow">ADMIN CONTROL</p>
+      <h1>Publish and manage</h1>
+      <p class="meta">Use the studio form to add new stories to the feed.</p>
+    </div>
+    <form method="post" action="{{ base_url }}{{ url_for('admin_logout') }}">
+      <button class="button ghost" type="submit">Log out</button>
     </form>
   </section>
 
-  <section class="card">
-    <h3>Existing posts</h3>
-    {% if posts %}
-      <ul>
-        {% for post in posts %}
-          <li>
-            <strong>{{ post['title'] }}</strong>
-            <span class="meta">{{ post['created_at'] }}</span>
-            <form method="post" action="{{ url_for('delete_post', post_id=post['id']) }}" style="display:inline;">
-              <button class="button" type="submit">Delete</button>
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="meta">No posts yet.</p>
-    {% endif %}
+  <section class="admin-studio">
+    <div class="admin-switcher" role="tablist" aria-label="Admin actions">
+      <button class="button ghost is-active" type="button" data-admin-target="settings">Site settings</button>
+      <button class="button ghost" type="button" data-admin-target="post">New post</button>
+      <button class="button ghost" type="button" data-admin-target="recipe">New recipe</button>
+    </div>
+    <div class="admin-panel" data-admin-panel="settings">
+      <h2>Site settings</h2>
+      <form method="post" action="{{ base_url }}{{ url_for('admin') }}">
+        <input type="hidden" name="form_type" value="settings" />
+        <label>
+          Site name
+          <input name="site_name" value="{{ settings['site_name'] }}" required />
+        </label>
+        <label>
+          Site tagline
+          <input name="site_tagline" value="{{ settings['site_tagline'] }}" />
+        </label>
+        <label>
+          Hero label
+          <input name="hero_label" value="{{ settings['hero_label'] }}" />
+        </label>
+        <label>
+          Hero title
+          <input name="hero_title" value="{{ settings['hero_title'] }}" required />
+        </label>
+        <label>
+          Hero subtitle
+          <textarea name="hero_subtitle">{{ settings['hero_subtitle'] }}</textarea>
+        </label>
+        <label>
+          Footer text
+          <input name="footer_text" value="{{ settings['footer_text'] }}" />
+        </label>
+        <button class="button primary" type="submit">Save settings</button>
+      </form>
+    </div>
+    <div class="admin-panel hidden" data-admin-panel="post">
+      <h2>New post</h2>
+      <form method="post" action="{{ base_url }}{{ url_for('admin') }}">
+        <input type="hidden" name="form_type" value="post" />
+        <label>
+          Title
+          <input name="title" placeholder="Post title" required />
+        </label>
+        <label>
+          Image URL
+          <input name="image_url" placeholder="https://..." />
+        </label>
+        <label>
+          Content
+          <textarea name="content" placeholder="Write the post content" required></textarea>
+        </label>
+        <button class="button primary" type="submit">Publish</button>
+      </form>
+    </div>
+    <div class="admin-panel hidden" data-admin-panel="recipe">
+      <h2>New recipe</h2>
+      <form method="post" action="{{ base_url }}{{ url_for('admin') }}">
+        <input type="hidden" name="form_type" value="recipe" />
+        <label>
+          Title
+          <input name="title" placeholder="Recipe title" required />
+        </label>
+        <label>
+          Ingredients (one per line)
+          <textarea name="ingredients" placeholder="eggs&#10;scallions&#10;kimchi" required></textarea>
+        </label>
+        <label>
+          Cooking time
+          <input name="cook_time" placeholder="e.g. 25 minutes" required />
+        </label>
+        <button class="button primary" type="submit">Add recipe</button>
+      </form>
+    </div>
   </section>
+
+  <section class="admin-grid">
+    <div class="admin-card">
+      <h2>Existing posts</h2>
+      {% if posts %}
+        <ul class="admin-list">
+          {% for post in posts %}
+            <li>
+              <div>
+                <strong>{{ post['title'] }}</strong>
+                <span class="meta">{{ post['created_at'] }}</span>
+              </div>
+              <div class="admin-actions">
+                <a class="button ghost" href="{{ base_url }}{{ url_for('edit_post', post_id=post['id']) }}">Edit</a>
+                <form method="post" action="{{ base_url }}{{ url_for('delete_post', post_id=post['id']) }}">
+                  <button class="button ghost" type="submit">Delete</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="meta">No posts yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="admin-card">
+      <h2>Existing recipes</h2>
+      {% if recipes %}
+        <ul class="admin-list">
+          {% for recipe in recipes %}
+            <li>
+              <div>
+                <strong>{{ recipe['title'] }}</strong>
+                <span class="meta">{{ recipe['cook_time'] }}</span>
+              </div>
+              <div class="admin-actions">
+                <form method="post" action="{{ base_url }}{{ url_for('delete_recipe', recipe_id=recipe['id']) }}">
+                  <button class="button ghost" type="submit">Delete</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="meta">No recipes yet.</p>
+      {% endif %}
+    </div>
+  </section>
+  <script>
+    (() => {
+      const buttons = document.querySelectorAll("[data-admin-target]");
+      const panels = document.querySelectorAll("[data-admin-panel]");
+      if (!buttons.length || !panels.length) {
+        return;
+      }
+      const setActive = (target) => {
+        panels.forEach((panel) => {
+          panel.classList.toggle("hidden", panel.dataset.adminPanel !== target);
+        });
+        buttons.forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.adminTarget === target);
+          button.setAttribute("aria-pressed", button.dataset.adminTarget === target);
+        });
+      };
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => setActive(button.dataset.adminTarget));
+      });
+      setActive("settings");
+    })();
+  </script>
 {% endblock %}

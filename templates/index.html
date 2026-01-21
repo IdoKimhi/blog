@@ -1,19 +1,41 @@
 {% extends 'base.html' %}
 {% block content %}
-  <section class="card">
-    <h2>Latest posts</h2>
-    <p class="meta">Simple, clean, and easy to read.</p>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">{{ settings["hero_label"] }}</p>
+      <h2>{{ settings["hero_title"] }}</h2>
+      <p class="hero-subtitle">{{ settings["hero_subtitle"] }}</p>
+      <p class="meta">Visits {{ visit_count }}</p>
+    </div>
   </section>
+
   {% if posts %}
-    {% for post in posts %}
-      <article class="card">
-        <h3><a href="{{ url_for('post_detail', post_id=post['id']) }}">{{ post['title'] }}</a></h3>
-        <p class="meta">{{ post['created_at'] }}</p>
-        <p>{{ post['content'][:180] }}{% if post['content']|length > 180 %}...{% endif %}</p>
-      </article>
-    {% endfor %}
+    <section class="post-list">
+      {% for post in posts %}
+        <article class="post-row">
+          <div class="post-content">
+            <h3>
+              <a href="{{ base_url }}{{ url_for('post_detail', post_id=post['id']) }}">
+                {{ post['title'] }}
+              </a>
+            </h3>
+            <p class="post-excerpt">
+              {{ post['content'][:160] }}{% if post['content']|length > 160 %}...{% endif %}
+            </p>
+            <p class="meta">{{ post['created_at'] }}</p>
+          </div>
+          <div class="post-media">
+            {% if post['image_url'] %}
+              <img class="post-orb" src="{{ post['image_url'] }}" alt="{{ post['title'] }}" />
+            {% else %}
+              <div class="post-orb placeholder"></div>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
   {% else %}
-    <div class="card empty-state">
+    <div class="empty-state">
       <h3>No posts yet</h3>
       <p>Create your first post from the admin panel.</p>
     </div>

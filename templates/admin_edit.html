@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="admin-header">
+    <div>
+      <p class="eyebrow">EDIT POST</p>
+      <h1>Update entry</h1>
+      <p class="meta">Refine the post details and save your updates.</p>
+    </div>
+    <a class="button ghost" href="{{ base_url }}{{ url_for('admin') }}">Back</a>
+  </section>
+
+  <section class="admin-grid single">
+    <div class="admin-card">
+      <h2>Post details</h2>
+      <form method="post" action="{{ base_url }}{{ url_for('edit_post', post_id=post['id']) }}">
+        <label>
+          Title
+          <input name="title" value="{{ post['title'] }}" required />
+        </label>
+        <label>
+          Image URL
+          <input name="image_url" value="{{ post['image_url'] or '' }}" placeholder="https://..." />
+        </label>
+        <label>
+          Content
+          <textarea name="content" required>{{ post['content'] }}</textarea>
+        </label>
+        <button class="button primary" type="submit">Save changes</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}

@@ -3,22 +3,66 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ title or "Notion Blog" }}</title>
+    <title>{{ title or settings["site_name"] }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body>
-    <header>
-      <nav>
-        <a href="{{ url_for('index') }}">Notion Blog</a>
+    <div class="page">
+      <header class="site-intro">
         <div>
-          <a class="button" href="{{ url_for('maintenance') }}">Maintenance</a>
-          <a class="button primary" href="{{ url_for('admin') }}">Admin</a>
+          <h1 class="site-title">{{ settings["site_name"] }}</h1>
+          <p class="site-tagline">{{ settings["site_tagline"] }}</p>
         </div>
-      </nav>
-    </header>
-    <main>
-      {% block content %}{% endblock %}
-    </main>
-    <footer>Minimal, focused writing space.</footer>
+      </header>
+      <section class="site-panel">
+        <nav class="panel-nav">
+          <a class="brand" href="{{ base_url }}{{ url_for('feed') }}">{{ settings["site_name"] }}</a>
+          <div class="nav-links">
+            <a href="{{ base_url }}{{ url_for('feed') }}">Home</a>
+            <a href="{{ base_url }}{{ url_for('admin') }}">Admin</a>
+          </div>
+          <button class="theme-toggle" type="button" data-theme-toggle>Dark mode</button>
+        </nav>
+        <main>
+          {% block content %}{% endblock %}
+        </main>
+      </section>
+      <footer class="site-footer">{{ settings["footer_text"] }}</footer>
+    </div>
+    <script>
+      (() => {
+        const storageKey = "theme";
+        const root = document.documentElement;
+        const toggle = document.querySelector("[data-theme-toggle]");
+        const setTheme = (theme) => {
+          root.setAttribute("data-theme", theme);
+          if (toggle) {
+            toggle.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+            toggle.setAttribute("aria-pressed", theme === "dark");
+          }
+          localStorage.setItem(storageKey, theme);
+        };
+        const savedTheme = localStorage.getItem(storageKey);
+        if (savedTheme) {
+          setTheme(savedTheme);
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          setTheme("dark");
+        } else {
+          setTheme("light");
+        }
+        if (toggle) {
+          toggle.addEventListener("click", () => {
+            const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            setTheme(nextTheme);
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
