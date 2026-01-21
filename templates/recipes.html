@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Recipes</p>
+      <h2>Kitchen notes</h2>
+      <p class="hero-subtitle">Simple, repeatable, and ready to share.</p>
+    </div>
+  </section>
+
+  {% if recipes %}
+    <div class="recipe-grid">
+      {% for recipe in recipes %}
+        <article class="recipe-card">
+          <div class="recipe-card-header">
+            <h2>{{ recipe['title'] }}</h2>
+            <span class="meta">{{ recipe['cook_time'] }}</span>
+          </div>
+          <ul class="recipe-ingredients">
+            {% for item in recipe['ingredients'].splitlines() %}
+              {% if item.strip() %}
+                <li>{{ item }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+          <p class="meta">Added {{ recipe['created_at'] }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No recipes yet</h3>
+      <p>Add your first recipe from the admin panel.</p>
+    </div>
+  {% endif %}
+{% endblock %}

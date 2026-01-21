@@ -27,9 +27,27 @@ def is_admin():
     return session.get("is_admin", False)
 
 
+SITE_DEFAULTS = {
+    "site_name": "Draft",
+    "site_tagline": "Personal blog template",
+    "hero_label": "Journal",
+    "hero_title": "My space to share",
+    "hero_subtitle": "Thoughtful notes on design, craft, and the quiet parts of building.",
+    "footer_text": "Thanks for reading.",
+}
+
+
+def get_settings(db):
+    rows = db.execute("SELECT key, value FROM site_settings").fetchall()
+    settings = {row["key"]: row["value"] for row in rows}
+    for key, value in SITE_DEFAULTS.items():
+        settings.setdefault(key, value)
+    return settings
+
+
 @app.context_processor
 def inject_base_url():
-    return {"base_url": BASE_URL}
+    return {"base_url": BASE_URL, "settings": get_settings(get_db())}
 
 
 def init_db():
@@ -47,13 +65,37 @@ def init_db():
     )
     db.execute(
         """
+        CREATE TABLE IF NOT EXISTS recipes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            ingredients TEXT NOT NULL,
+            cook_time TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    db.execute(
+        """
         CREATE TABLE IF NOT EXISTS visits (
             id INTEGER PRIMARY KEY CHECK (id = 1),
             count INTEGER NOT NULL DEFAULT 0
         )
         """
     )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS site_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+        """
+    )
     db.execute("INSERT OR IGNORE INTO visits (id, count) VALUES (1, 0)")
+    for key, value in SITE_DEFAULTS.items():
+        db.execute(
+            "INSERT OR IGNORE INTO site_settings (key, value) VALUES (?, ?)",
+            (key, value),
+        )
     columns = [row["name"] for row in db.execute("PRAGMA table_info(posts)").fetchall()]
     if "image_url" not in columns:
         db.execute("ALTER TABLE posts ADD COLUMN image_url TEXT")
@@ -113,21 +155,51 @@ def admin():
         return redirect(url_for("admin_login"))
     db = get_db()
     if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        image_url = request.form.get("image_url", "").strip() or None
-        content = request.form.get("content", "").strip()
-        if title and content:
-            db.execute(
-                "INSERT INTO posts (title, image_url, content) VALUES (?, ?, ?)",
-                (title, image_url, content),
-            )
+        form_type = request.form.get("form_type", "post")
+        if form_type == "settings":
+            updates = {
+                "site_name": request.form.get("site_name", "").strip(),
+                "site_tagline": request.form.get("site_tagline", "").strip(),
+                "hero_label": request.form.get("hero_label", "").strip(),
+                "hero_title": request.form.get("hero_title", "").strip(),
+                "hero_subtitle": request.form.get("hero_subtitle", "").strip(),
+                "footer_text": request.form.get("footer_text", "").strip(),
+            }
+            for key, value in updates.items():
+                db.execute(
+                    "REPLACE INTO site_settings (key, value) VALUES (?, ?)",
+                    (key, value),
+                )
             db.commit()
+        elif form_type == "recipe":
+            title = request.form.get("title", "").strip()
+            ingredients = request.form.get("ingredients", "").strip()
+            cook_time = request.form.get("cook_time", "").strip()
+            if title and ingredients and cook_time:
+                db.execute(
+                    "INSERT INTO recipes (title, ingredients, cook_time) VALUES (?, ?, ?)",
+                    (title, ingredients, cook_time),
+                )
+                db.commit()
+        else:
+            title = request.form.get("title", "").strip()
+            image_url = request.form.get("image_url", "").strip() or None
+            content = request.form.get("content", "").strip()
+            if title and content:
+                db.execute(
+                    "INSERT INTO posts (title, image_url, content) VALUES (?, ?, ?)",
+                    (title, image_url, content),
+                )
+                db.commit()
         return redirect(url_for("admin"))
 
     posts = db.execute(
         "SELECT id, title, image_url, created_at FROM posts ORDER BY created_at DESC"
     ).fetchall()
-    return render_template("admin.html", posts=posts)
+    recipes = db.execute(
+        "SELECT id, title, cook_time, created_at FROM recipes ORDER BY created_at DESC"
+    ).fetchall()
+    return render_template("admin.html", posts=posts, recipes=recipes)
 
 
 @app.route("/admin/edit/<int:post_id>", methods=["GET", "POST"])
@@ -165,6 +237,16 @@ def delete_post(post_id):
     return redirect(url_for("admin"))
 
 
+@app.route("/admin/delete-recipe/<int:recipe_id>", methods=["POST"])
+def delete_recipe(recipe_id):
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+    db = get_db()
+    db.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,))
+    db.commit()
+    return redirect(url_for("admin"))
+
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     error = None
@@ -187,6 +269,15 @@ def admin_logout():
 @app.route("/maintance")
 def maintenance():
     return render_template("maintenance.html")
+
+
+@app.route("/recipes")
+def recipes():
+    db = get_db()
+    items = db.execute(
+        "SELECT id, title, ingredients, cook_time, created_at FROM recipes ORDER BY created_at DESC"
+    ).fetchall()
+    return render_template("recipes.html", recipes=items)
 
 
 if __name__ == "__main__":
