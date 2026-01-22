@@ -1,65 +1,46 @@
 pipeline {
-    agent any
-    
-    // Define your destination folder here
-    environment {
-        DEPLOY_DIR = '/opt/blog'
+  agent any
+
+  environment {
+    DEPLOY_HOST = '192.168.1.186'   // set to the server LAN IP
+    DEPLOY_DIR  = '/opt/blog'
+  }
+
+  triggers { githubPush() }
+
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+
+    stage('Prepare .env') {
+      steps {
+        sh 'cp .env.example .env'
+        // later replace with a Jenkins Secret file if you want
+      }
     }
 
-    triggers {
-        githubPush()
+    stage('Sync to server') {
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'deploy-ssh', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+          sh '''
+            set -e
+            tar --exclude=.git -C "$WORKSPACE" -cf - . | \
+              ssh -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new "$SSH_USER@$DEPLOY_HOST" \
+              "mkdir -p '$DEPLOY_DIR' && tar -xf - -C '$DEPLOY_DIR'"
+          '''
+        }
+      }
     }
 
-    stages {
-        stage('Prepare Deployment') {
-            steps {
-                script {
-                    // 1. Create the .env file in the workspace first
-                    // Use 'cp' or inject secrets as discussed before
-                    sh 'cp .env.example .env'
-                }
-            }
+    stage('Deploy on server') {
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'deploy-ssh', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+          sh '''
+            set -e
+            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new "$SSH_USER@$DEPLOY_HOST" \
+              "cd '$DEPLOY_DIR' && docker compose up -d --build --remove-orphans"
+          '''
         }
-
-        stage('Sync to /opt/blog') {
-            steps {
-                script {
-                    echo "Syncing files to ${DEPLOY_DIR}..."
-                    
-                    // Ensure the directory exists
-                    sh "mkdir -p ${DEPLOY_DIR}"
-                    
-                    // Use rsync to copy files from Jenkins workspace to /opt/blog
-                    // -a: archive mode (preserves permissions/times)
-                    // -v: verbose
-                    // --delete: remove files in destination that no longer exist in source
-                    // --exclude '.git': We don't need the git history in the runtime folder
-                    sh "rsync -av --delete --exclude '.git' . ${DEPLOY_DIR}"
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                // Change execution context to /opt/blog
-                dir(env.DEPLOY_DIR) {
-                    script {
-                        echo 'Starting Docker Compose...'
-                        // Run compose from within /opt/blog
-                        sh 'docker compose up -d --build --remove-orphans'
-                    }
-                }
-            }
-        }
+      }
     }
-
-    post {
-        success {
-            echo 'Deployed successfully to /opt/blog'
-            sh 'docker image prune -f'
-        }
-        failure {
-            echo 'Deployment failed.'
-        }
-    }
+  }
 }
